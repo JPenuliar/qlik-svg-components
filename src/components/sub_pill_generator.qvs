@@ -1,7 +1,7 @@
 // ============================================================================
-// COMPONENT MODULE: CreateSVGPills (100% Full Background Crawler Edition)
+// COMPONENT MODULE: CreateSVGPills (Fixed Grouped Row Expansion Edition)
 // File: src/components/sub_pill_generator.qvs
-// Repository: ://github.com
+// Repository: : https://github.com/JPenuliar/qlik-svg-components
 // ============================================================================
 SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField, vBgColorField, vTextColorField, vStrokeColorField, vOutputType)
 
@@ -31,7 +31,7 @@ SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField
         If(Match(Upper($(vTextField)), 'BLOCKED', 'CRITICAL', 'ALERT', 'PENDING', 'ACTIVE'), 1, 0) as _svg_is_status
     RESIDENT $(vSourceTable);
 
-    // Phase B: Execute ordered sequential offset tracking using clean variables
+    // Phase B: Execute ordered sequential offset tracking
     _SVG_Staging_With_Offsets:
     NoConcatenate
     LOAD 
@@ -48,48 +48,33 @@ SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField
 
     DROP TABLE _SVG_Staging_Pre;
 
-    // Phase C: Compile inner structural shape codes and trace running row coordinates
+    // Phase C: Compile inner structural shape codes and track running row offsets safely
     _SVG_Staging_Compiled:
     NoConcatenate
     LOAD
         _svg_id,
         _svg_group,
         _svg_width,
-        
-        // 1. INJECT EMBEDDED STYLE SHEETS (Bypasses Qlik tag sanitizer completely)
         '<style>' &
           '@keyframes pillFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } } ' &
           '@keyframes indicatorGlow { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } } ' &
-          // Fixed animation profile: The width-wipe now sweeps cleanly across the full capsule width
           '@keyframes qlikPillWipe { from { width: 0px; } to { width: ' & (_svg_width - 4) & 'px; } } ' &
-          
           '.pill-g-wrap { animation: pillFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; } ' &
           '.pill-pulse-dot { animation: indicatorGlow 2s ease-in-out infinite; } ' &
           '.pill-anim-loader { animation: qlikPillWipe 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; } ' &
         '</style>' &
-        
-        // 2. Base Capsule Shape Layer (Background track)
         '<rect x="2" y="2" width="' & (_svg_width - 4) & '" height="$(vPillHeight)" rx="$(vPillRadius)" fill="' & _svg_bg & '" stroke="' & _svg_stroke & '" stroke-width="$(vStrokeWidth)" stroke-dasharray="$(vStrokeDashArray)"/>' &
-        
-        // 3. FIXED FULL-HEIGHT CRAWLER LAYER:
-        // Positioned perfectly at x="2" y="2" with height="$(vPillHeight)" and rx="$(vPillRadius)" to match the capsule size.
-        // It renders BEFORE the text layer, serving as a dynamic, looping animated background fill element.
         If(Match(Upper(_svg_text), 'PENDING', 'ACTIVE'),
             '<rect class="pill-anim-loader" x="2" y="2" height="$(vPillHeight)" rx="$(vPillRadius)" fill="' & _svg_stroke & '" opacity="0.12" />'
         ) &
-        
-        // 4. Dynamic Alert Indicator Dot Layer
         If(_svg_is_status = 1,
             '<circle class="pill-pulse-dot" cx="16" cy="' & ($(vPillHeight) / 2 + 2) & '" r="4" fill="' & _svg_stroke & '" />'
         ) &
-        
-        // 5. Text Label Layer (Placed last so it floats cleanly on top of the background crawler)
-        '<text x="' & If(_svg_is_status = 1, (_svg_width / 2) + 6, _svg_width / 2) & '" ' & 
-        'y="$(vTextCenterY)" dominant-baseline="central" text-anchor="middle" ' &
-        'font-family="' & '$(vFontFamily)' & '" font-weight="' & '$(vFontWeight)' & '" font-size="' & '$(vFontSize)' & '" fill="' & _svg_text_color & '">' & _svg_text & '</text>' as _svg_inner,
+        '<text x="' & If(_svg_is_status = 1, (_svg_width / 2) + 6, _svg_width / 2) & '" y="$(vTextCenterY)" dominant-baseline="central" text-anchor="middle" font-family="$(vFontFamily)" font-weight="$(vFontWeight)" font-size="$(vFontSize)" fill="' & _svg_text_color & '">' & _svg_text & '</text>' as _svg_inner,
         
         If('$(l_Mode)' = 'ROW', 0, If(_svg_group = Peek('_svg_group'), Peek('_svg_offset') + Peek('_svg_width') + $(vPillGap), 0)) as _svg_offset
-    RESIDENT _SVG_Staging_With_Offsets;
+    RESIDENT _SVG_Staging_With_Offsets
+    ORDER BY $(l_OrderBy);
 
     DROP TABLE _SVG_Staging_With_Offsets;
 
@@ -99,34 +84,43 @@ SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField
         NoConcatenate
         LOAD
             _svg_group as $(vGroupField),
-            'data:image/svg+xml;utf8,' & 
-            '<svg width="100%" height="100%" viewBox="0 0 ' & (Sum(_svg_width) + (Count(_svg_id) * $(vPillGap))) & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" ' & '$(vXmlns)' & '>' & 
-            Concat('<g class="pill-g-wrap" transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & 
-            '</svg>' as $(vOutputField)
-        RESIDENT _SVG_Staging_Compiled
+            'data:image/svg+xml;utf8,<svg width="100%" height="100%" viewBox="0 0 ' & (Sum(_svg_width) + (Count(_svg_id) * $(vPillGap))) & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" $(vXmlns)>' & Concat('<g class="pill-g-wrap" transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & '</svg>' as $(vOutputField)
+        RESIDENT _SVG_Staging_Compiled 
         GROUP BY _svg_group;
+
+        // FIXED JOIN LOGIC: We join back only columns that are NOT the unique row-level IdField.
+        // This stops the unique ID from splitting your aggregated country/region rows apart.
+        _SVG_Staging_Fields:
+        NoConcatenate
+        LOAD DISTINCT * RESIDENT $(vSourceTable);
+        DROP FIELD [$(vIdField)] FROM _SVG_Staging_Fields;
+
+        Left Join($(vSourceTable)_SVG_Output) 
+        LOAD * RESIDENT _SVG_Staging_Fields;
+        DROP TABLE _SVG_Staging_Fields;
+
     ELSEIF '$(l_Mode)' = 'ROW' THEN
         $(vSourceTable)_SVG_Output:
         NoConcatenate
         LOAD
             _svg_id as $(vIdField),
-            'data:image/svg+xml;utf8,' & 
-            '<svg width="100%" height="100%" viewBox="0 0 ' & _svg_width & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" ' & '$(vXmlns)' & '>' & 
-            '<g class="pill-g-wrap">' & _svg_inner & '</g>' & 
-            '</svg>' as $(vOutputField)
+            'data:image/svg+xml;utf8,<svg width="100%" height="100%" viewBox="0 0 ' & _svg_width & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" $(vXmlns)><g class="pill-g-wrap">' & _svg_inner & '</g></svg>' as $(vOutputField)
         RESIDENT _SVG_Staging_Compiled;
+
+        Left Join($(vSourceTable)_SVG_Output) LOAD * RESIDENT $(vSourceTable);
     ELSE
         $(vSourceTable)_SVG_Output:
         NoConcatenate
         LOAD
-            'data:image/svg+xml;utf8,' & 
-            '<svg width="100%" height="100%" viewBox="0 0 ' & (Sum(_svg_width) + (Count(_svg_id) * $(vPillGap))) & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" ' & '$(vXmlns)' & '>' & 
-            Concat('<g class="pill-g-wrap" transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & 
-            '</svg>' as $(vOutputField)
-        RESIDENT _SVG_Staging_Compiled
+            'data:image/svg+xml;utf8,<svg width="100%" height="100%" viewBox="0 0 ' & (Sum(_svg_width) + (Count(_svg_id) * $(vPillGap))) & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" $(vXmlns)>' & Concat('<g class="pill-g-wrap" transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & '</svg>' as $(vOutputField)
+        RESIDENT _SVG_Staging_Compiled 
         GROUP BY _svg_group;
     ENDIF;
 
     DROP TABLE _SVG_Staging_Compiled;
+
+    // Automated Field Clean-up Engine
+    DROP FIELDS [$(vBgColorField)], [$(vTextColorField)], [$(vStrokeColorField)] FROM $(vSourceTable)_SVG_Output;
+
     LET l_Mode = Null(); LET l_GroupKey = Null(); LET l_OrderBy = Null();
 END SUB;
