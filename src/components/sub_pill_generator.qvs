@@ -1,0 +1,83 @@
+// ============================================================================
+// COMPONENT MODULE: CreateSVGPills
+// Handles 'GROUPED', 'SINGLE', and 'ROW' horizontal capsule canvas compilation.
+// ============================================================================
+SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField, vBgColorField, vTextColorField, vStrokeColorField, vOutputType)
+
+    LET l_Mode = Upper(Trim('$(vOutputType)'));
+    
+    IF '$(l_Mode)' = 'GROUPED' THEN
+        LET l_GroupKey = '$(vGroupField)';
+        LET l_OrderBy  = '$(vGroupField), $(vIdField)';
+    ELSEIF '$(l_Mode)' = 'ROW' THEN
+        LET l_GroupKey = '$(vIdField)'; 
+        LET l_OrderBy  = '$(vIdField)';
+    ELSE
+        LET l_GroupKey = Chr(39) & 'GlobalCanvas' & Chr(39); 
+        LET l_OrderBy  = '$(vIdField)';
+    ENDIF;
+
+    _SVG_Staging_Ordered:
+    NoConcatenate
+    LOAD 
+        $(vIdField) as _svg_id,
+        $(vTextField) as _svg_text,
+        $(l_GroupKey) as _svg_group,
+        $(vBgColorField) as _svg_bg,
+        $(vTextColorField) as _svg_text_color,
+        If(Len(Trim('$(vStrokeColorField)')) > 0, $(vStrokeColorField), $(vTextColorField)) as _svg_stroke,
+        (Len(Trim($(vTextField))) * $(vCharMultiplier)) + $(vPillHeight) + 4 as _svg_width
+    RESIDENT $(vSourceTable)
+    ORDER BY $(l_OrderBy);
+
+    _SVG_Staging_With_Offsets:
+    NoConcatenate
+    LOAD 
+        _svg_id,
+        _svg_group,
+        _svg_width,
+        '<rect x="2" y="2" width="' & (_svg_width - 4) & '" height="$(vPillHeight)" rx="$(vPillRadius)" fill="' & _svg_bg & '" stroke="' & _svg_stroke & '" stroke-width="$(vStrokeWidth)" stroke-dasharray="' & '$(vStrokeDashArray)' & '"/>' &
+        '<text x="' & (_svg_width / 2) & '" y="$(vTextCenterY)" dominant-baseline="central" text-anchor="middle" ' &
+        'font-family="' & '$(vFontFamily)' & '" font-weight="' & '$(vFontWeight)' & '" font-size="' & '$(vFontSize)' & '" fill="' & _svg_text_color & '">' & _svg_text & '</text>' as _svg_inner,
+        
+        If('$(l_Mode)' = 'ROW', 0, If(_svg_group = Peek('_svg_group'), Peek('_svg_offset') + Peek('_svg_width') + $(vPillGap), 0)) as _svg_offset
+    RESIDENT _SVG_Staging_Ordered;
+
+    DROP TABLE _SVG_Staging_Ordered;
+
+    IF '$(l_Mode)' = 'GROUPED' THEN
+        $(vSourceTable)_SVG_Output:
+        NoConcatenate
+        LOAD
+            _svg_group as $(vGroupField),
+            'data:image/svg+xml;utf8,' & 
+            '<svg width="100%" height="100%" viewBox="0 0 ' & (Sum(_svg_width) + (Count(_svg_id) * $(vPillGap))) & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" ' & '$(vXmlns)' & '>' & 
+            Concat('<g transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & 
+            '</svg>' as $(vOutputField)
+        RESIDENT _SVG_Staging_With_Offsets
+        GROUP BY _svg_group;
+    ELSEIF '$(l_Mode)' = 'ROW' THEN
+        $(vSourceTable)_SVG_Output:
+        NoConcatenate
+        LOAD
+            _svg_id as $(vIdField),
+            'data:image/svg+xml;utf8,' & 
+            '<svg width="100%" height="100%" viewBox="0 0 ' & _svg_width & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" ' & '$(vXmlns)' & '>' & 
+            _svg_inner & 
+            '</svg>' as $(vOutputField)
+        RESIDENT _SVG_Staging_With_Offsets;
+    ELSE
+        $(vSourceTable)_SVG_Output:
+        NoConcatenate
+        LOAD
+            'data:image/svg+xml;utf8,' & 
+            '<svg width="100%" height="100%" viewBox="0 0 ' & (Sum(_svg_width) + (Count(_svg_id) * $(vPillGap))) & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" ' & '$(vXmlns)' & '>' & 
+            Concat('<g transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & 
+            '</svg>' as $(vOutputField)
+        RESIDENT _SVG_Staging_With_Offsets
+        GROUP BY _svg_group;
+    ENDIF;
+
+    DROP TABLE _SVG_Staging_With_Offsets;
+    LET l_Mode = Null(); LET l_GroupKey = Null(); LET l_OrderBy = Null();
+END SUB;
