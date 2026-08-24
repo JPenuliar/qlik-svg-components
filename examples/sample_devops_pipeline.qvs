@@ -1,0 +1,29 @@
+// ============================================================================
+// REPOSITORY IMPLEMENTATION EXAMPLE: DEVOPS CI/CD PIPELINE TRACKER
+// File: examples/sample_devops_pipeline.qvs
+// Layout Profile: ROW (One standalone automated capsule per data record)
+// ============================================================================
+
+// 1. Initialize the system core graphics engine dependencies
+$(Include=../src/SVG_Main_Core.qvs);
+
+// 2. Adjust local layout design styles to fit an enterprise console feel
+LET vStrokeDashArray = ''; // Force borders solid for crisp, distinct outlines
+
+// 3. Load live sandbox runtime log metrics data
+DevOpsStaging:
+NoConcatenate
+LOAD * INLINE [
+    EnvID, Environment,     DeployStatus, BgHex,       TextHex,     StrokeHex
+    501,   Production,      ACTIVE,       '%23e0f2fe', '%230369a1', '%230284c7' // Blue + Shimmer Background
+    502,   Staging Sandbox, PENDING,      '%23fef3c7', '%2392400e', '%23f59e0b' // Amber + Shimmer Background + Alert Dot
+    503,   UAT Testing,     CRITICAL,     '%23fee2e2', '%23991b1b', '%23ef4444' // Red + Breathing Radar Alert Dot
+    504,   Local Dev Box,   Syncing,      '%23f1f5f9', '%23334155', '%23cbd5e1' // Gray Static Baseline Component
+];
+
+// 4. Compile individual vector assets mapped directly to unique Environment records
+CALL CreateSVGPills('DevOpsStaging', '', 'DeployStatus', 'EnvID', 'EnvBadgeField', 'BgHex', 'TextHex', 'StrokeHex', 'ROW');
+
+DROP TABLE DevOpsStaging;
+
+// Output: 'DevOpsStaging_SVG_Output' table with [EnvID] and [EnvBadgeField] (4 independent rows)
