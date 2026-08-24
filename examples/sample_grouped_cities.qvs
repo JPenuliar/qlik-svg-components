@@ -1,21 +1,21 @@
 // ============================================================================
 // REPOSITORY IMPLEMENTATION EXAMPLE: GROUPED PILLS MULTI-STACK
 // File: examples/sample_grouped_cities.qvs
+// Description: Maps city rows to color themes and bundles them side-by-side.
 // ============================================================================
 
 // 1. Load the core architecture library file
-// Swap this path out for your actual QVS data folder network or web link share pointers
 $(Include=../src/SVG_Main_Core.qvs);
 
 // 2. Establish a modular Color Lookup Matrix
 CityThemesMatrix:
 LOAD * INLINE [
     TargetCity, BgHex,       TextHex,     BorderHex
-    London,     '%23e0f2fe', '%230369a1', '%230284c7'  // Soft Blue Theme
-    New York,   '%23f1f5f9', '%23334155', '%23cbd5e1'  // Charcoal Slate Theme
-    Tokyo,      '%23fce7f3', '%239d174d', '%23f472b6'  // Cherry Blossom Pink
-    Berlin,     '%23fef3c7', '%2392400e', '%23f59e0b'  // Amber Theme
-    Munich,     '%23dcfce7', '%23166534', '%2322c55e'  // Emerald Green Theme
+    London,     '%23e0f2fe', '%230369a1', '%230284c7'  
+    New York,   '%23f1f5f9', '%23334155', '%23cbd5e1'  
+    Tokyo,      '%23fce7f3', '%239d174d', '%23f472b6'  
+    Berlin,     '%23fef3c7', '%2392400e', '%23f59e0b'  
+    Munich,     '%23dcfce7', '%23166534', '%2322c55e'  
 ];
 
 // 3. Load raw business records data
@@ -45,7 +45,7 @@ RESIDENT RawCitiesStaging;
 DROP TABLES RawCitiesStaging, CityThemesMatrix;
 
 // 5. Fire the subroutine library module using GROUPED profile engine rules
-// This bundles multiple matching rows into a single horizontal block per Country
+// This safely loops internal alias arrays, sorting and stacking Berlin next to Munich.
 CALL CreateSVGPills('ProcessedCitiesTable', 'Country', 'CityName', 'CityID', 'CountryBadgeStrip', 'PillarBg', 'PillarText', 'PillarBorder', 'GROUPED');
 
 DROP TABLE ProcessedCitiesTable;
