@@ -16,11 +16,11 @@ Below are the live-rendering animation profiles handled natively by our framewor
 
 | Status Key | Live Component Showcase | Profile Description |
 | :--- | :--- | :--- |
-| **ACTIVE (Green)** | ![Green Shimmer](https://githubusercontent.com) | **Green Shimmer**: Continuous `1.8s` loading sweep running horizontally behind the text label. |
-| **BLOCKED / CRITICAL** | ![Red Pulse](https://githubusercontent.com) | **Red Pulsing Dot**: Infuses a flashing radar alert ring on the left with a slow opacity breathing cycle. |
-| **PENDING** | ![Amber Combo](https://githubusercontent.com) | **Amber Combo**: Dual-action animation combining a full background loader bar with a pulsing alert dot. |
-| **ACTIVE (Blue)** | ![Blue Shimmer](https://githubusercontent.com) | **Blue Shimmer**: Elegant wave shimmer, perfect for active background syncs or data pipeline states. |
-| **DEFAULT (Static)** | ![Slate Static](examples/assets/static_slate.svg) | **Slate Static**: Disables all movement to keep completed or historical elements clean and legible. |
+| **ACTIVE (Green)** | <img src="https://githubusercontent.com" width="106" height="28" alt="Green Shimmer" /> | **Green Shimmer**: Continuous `1.8s` loading sweep running horizontally behind the text label. |
+| **BLOCKED / CRITICAL** | <img src="https://githubusercontent.com" width="114" height="28" alt="Red Pulse" /> | **Red Pulsing Dot**: Infuses a flashing radar alert ring on the left with a slow opacity breathing cycle. |
+| **PENDING** | <img src="https://githubusercontent.com" width="112" height="28" alt="Amber Combo" /> | **Amber Combo**: Dual-action animation combining a full background loader bar with a pulsing alert dot. |
+| **ACTIVE (Blue)** | <img src="https://githubusercontent.com" width="106" height="28" alt="Blue Shimmer" /> | **Blue Shimmer**: Elegant wave shimmer, perfect for active background syncs or data pipeline states. |
+| **DEFAULT (Static)** | <img src="https://githubusercontent.com" width="98" height="28" alt="Slate Static" /> | **Slate Static**: Disables all movement to keep completed or historical elements clean and legible. |
 
 ---
 
