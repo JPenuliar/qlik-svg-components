@@ -5,7 +5,7 @@
 
 // 1. GLOBAL DESIGN SYSTEM CORE THEME ENGINE VARIABLES
 // Always use LET statements to enforce immediate mathematical evaluation during script load.
-LET vXmlns          = 'xmlns="xmlns="http://www.w3.org/2000/svg"'; // Full W3C standard URL namespace
+LET vXmlns          = 'xmlns="http://www.w3.org/2000/svg"'; // Full W3C standard URL namespace
 LET vFontSize       = '11px';                             // Text label render font height
 LET vFontFamily     = 'sans-serif';                       // Corporate typography configuration
 LET vFontWeight     = 'bold';                             // Typography design weight profile
