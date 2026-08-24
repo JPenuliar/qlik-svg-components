@@ -1,0 +1,32 @@
+// ============================================================================
+// REPOSITORY IMPLEMENTATION EXAMPLE: ROW-LEVEL PROGRESS GAUGES
+// File: examples/sample_metrics_tracker.qvs
+// ============================================================================
+
+// 1. Pull in your main core graphics definition asset
+$(Include=../src/SVG_Main_Core.qvs);
+
+// 2. Setup your target corporate metrics schema data
+ProjectMilestones:
+NoConcatenate
+LOAD * INLINE [
+    ProjectID, ProjectName,       CompletionPercentage
+    1001,      Cloud Migration,   88.5
+    1002,      Database Tuning,   14.0
+    1003,      Security Audit,    100.0
+    1004,      UI/UX Overhaul,    0.0
+    1005,      API Gateway V2,    52.3
+];
+
+// 3. Trigger your progressive graphics engine subroutine function
+// Arguments: SourceTable, IdField, PercentField, OutputFieldName, FillColor, TrackColor
+CALL CreateSVGProgressBars('ProjectMilestones', 'ProjectID', 'CompletionPercentage', 'VisualProgressTrack', '%2306b6d4', '%23f1f5f9');
+
+// 4. Merge the visual progress tracks back to the primary project description table
+Left Join(ProjectMilestones)
+LOAD * RESIDENT ProjectMilestones_Progress_Output;
+
+DROP TABLE ProjectMilestones_Progress_Output;
+
+// Final table available in data model: 'ProjectMilestones'
+// Columns: [ProjectID], [ProjectName], [CompletionPercentage], [VisualProgressTrack]
