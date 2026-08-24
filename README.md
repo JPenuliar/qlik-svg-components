@@ -20,7 +20,7 @@ Below are the live-rendering animation profiles handled natively by our framewor
 | **BLOCKED / CRITICAL** | ![Red Pulse](https://githubusercontent.com) | **Red Pulsing Dot**: Infuses a flashing radar alert ring on the left with a slow opacity breathing cycle. |
 | **PENDING** | ![Amber Combo](https://githubusercontent.com) | **Amber Combo**: Dual-action animation combining a full background loader bar with a pulsing alert dot. |
 | **ACTIVE (Blue)** | ![Blue Shimmer](https://githubusercontent.com) | **Blue Shimmer**: Elegant wave shimmer, perfect for active background syncs or data pipeline states. |
-| **DEFAULT (Static)** | ![Slate Static](https://githubusercontent.com) | **Slate Static**: Disables all movement to keep completed or historical elements clean and legible. |
+| **DEFAULT (Static)** | ![Slate Static](examples/assets/static_slate.svg) | **Slate Static**: Disables all movement to keep completed or historical elements clean and legible. |
 
 ---
 
