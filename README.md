@@ -16,15 +16,29 @@ Below are the live-rendering animation profiles handled natively by our framewor
 
 | Status Key | Live Component Showcase | Profile Description |
 | :--- | :--- | :--- |
-| **ACTIVE (Green)** | <img src="https://githubusercontent.com" width="106" height="28" alt="Green Shimmer" /> | **Green Shimmer**: Continuous `1.8s` loading sweep running horizontally behind the text label. |
-| **BLOCKED / CRITICAL** | <img src="https://githubusercontent.com" width="114" height="28" alt="Red Pulse" /> | **Red Pulsing Dot**: Infuses a flashing radar alert ring on the left with a slow opacity breathing cycle. |
-| **PENDING** | <img src="https://githubusercontent.com" width="112" height="28" alt="Amber Combo" /> | **Amber Combo**: Dual-action animation combining a full background loader bar with a pulsing alert dot. |
-| **ACTIVE (Blue)** | <img src="https://githubusercontent.com" width="106" height="28" alt="Blue Shimmer" /> | **Blue Shimmer**: Elegant wave shimmer, perfect for active background syncs or data pipeline states. |
-| **DEFAULT (Static)** | <img src="https://githubusercontent.com" width="98" height="28" alt="Slate Static" /> | **Slate Static**: Disables all movement to keep completed or historical elements clean and legible. |
+| **ACTIVE (Green)** | <img src="examples/assets/active_green.svg" width="106" height="28" alt="Green Shimmer" /> | **Green Shimmer**: Continuous `1.8s` loading sweep running horizontally behind the text label. |
+| **BLOCKED / CRITICAL** | <img src="examples/assets/critical_red.svg" width="114" height="28" alt="Red Pulse" /> | **Red Pulsing Dot**: Infuses a flashing radar alert ring on the left with a slow opacity breathing cycle. |
+| **PENDING** | <img src="examples/assets/pending_amber.svg" width="112" height="28" alt="Amber Combo" /> | **Amber Combo**: Dual-action animation combining a full background loader bar with a pulsing alert dot. |
+| **ACTIVE (Blue)** | <img src="examples/assets/active_blue.svg" width="106" height="28" alt="Blue Shimmer" /> | **Blue Shimmer**: Elegant wave shimmer, perfect for active background syncs or data pipeline states. |
+| **DEFAULT (Static)** | <img src="examples/assets/static_slate.svg" width="98" height="28" alt="Slate Static" /> | **Slate Static**: Disables all movement to keep completed or historical elements clean and legible. |
 
 ---
 
-## 💾 Subroutine Parameters & Integration
+## � SVG Assets & Preview
+
+All SVG component files are located in the [`examples/assets/`](examples/assets/) directory:
+
+- 🔵 [`active_blue.svg`](examples/assets/active_blue.svg) - Blue shimmer animation
+- 🟢 [`active_green.svg`](examples/assets/active_green.svg) - Green shimmer animation  
+- 🔴 [`critical_red.svg`](examples/assets/critical_red.svg) - Red pulsing dot alert
+- 🟠 [`pending_amber.svg`](examples/assets/pending_amber.svg) - Amber combo animation
+- ⚪ [`static_slate.svg`](examples/assets/static_slate.svg) - Static slate badge
+
+**🎨 Interactive Preview**: Open [`examples/assets/PREVIEW.html`](examples/assets/PREVIEW.html) in your browser for a live, interactive showcase of all SVG components with their animations running in real-time.
+
+---
+
+## �💾 Subroutine Parameters & Integration
 
 ### 1. The Pill & Status Badge Module (`CreateSVGPills`)
 ```qlik
