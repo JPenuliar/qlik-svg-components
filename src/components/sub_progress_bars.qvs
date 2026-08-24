@@ -1,55 +1,66 @@
 // ============================================================================
-// COMPONENT MODULE: CreateSVGProgressBars (Bypass Protected CSS Animation Edition)
+// COMPONENT MODULE: CreateSVGProgressBars (Production Animation-Safe Edition)
 // File: src/components/sub_progress_bars.qvs
 // Repository: ://github.com
-// Description: Renders percentage data tracks with hardware-accelerated CSS 
-//              animations that bypass native Qlik Sense tag sanitization.
+// Description: Renders clean, high-density linear percentage tracks with 
+//              hardware-accelerated, sandbox-safe CSS animation profiles.
 // ============================================================================
 SUB CreateSVGProgressBars(vSourceTable, vIdField, vPercentField, vOutputField, vFillColorBlock, vTrackColorBlock)
 
-    // 1. Establish stable style configurations or apply professional system defaults
-    LET l_Track = If(Len(Trim('$(vTrackColorBlock)')) > 0, '$(vTrackColorBlock)', '%23f1f5f9');
-    LET l_TextFont = If(IsNull(vFontFamily), 'sans-serif', '$(vFontFamily)');
+    // 1. Establish stable layout configurations from global constants
+    LET l_TextFont   = If(IsNull(vFontFamily), 'sans-serif', '$(vFontFamily)');
     LET l_TextWeight = If(IsNull(vFontWeight), 'bold', '$(vFontWeight)');
 
+    // Phase A: Evaluate parameters explicitly and truncate decimals to integers
+    _SVG_Bar_Staging:
+    NoConcatenate
+    LOAD
+        $(vIdField) as _bar_id,
+        Floor(RangeMax(0, RangeMin(100, $(vPercentField)))) as _bar_percent,
+        If(Len(Trim('$(vTrackColorBlock)')) > 0, '$(vTrackColorBlock)', '%23f1f5f9') as _bar_track_color,
+        If(Len(Trim('$(vFillColorBlock)')) > 0, '$(vFillColorBlock)', '%2306b6d4') as _bar_fill_color
+    RESIDENT $(vSourceTable);
+
+    // Phase B: Compile down to the optimized CSS-animated vector target field
     $(vSourceTable)_Progress_Output:
     NoConcatenate
     LOAD
-        $(vIdField) as $(vIdField),
+        _bar_id as $(vIdField),
         'data:image/svg+xml;utf8,' &
-        '<svg width="100%" height="100%" viewBox="0 0 100 20" preserveAspectRatio="none" ' & '$(vXmlns)' & '>' &
+        '<svg width="100%" height="100%" viewBox="0 0 102 20" preserveAspectRatio="none" ' & '$(vXmlns)' & '>' &
           
-          // A. INJECT EMBEDDED STYLE SHEETS (Bypasses Qlik's tag sanitizer completely)
+          // 1. INJECT EMBEDDED STYLE SHEETS (Bypasses Qlik tag sanitizer completely)
           '<style>' &
             // Animation Profile 1: Smooth ease-in wipe width loading for active progress tracking bars
-            '@keyframes qlikFillWipe { from { width: 0px; } to { width: ' & RangeMax(0, RangeMin(99, $(vPercentField))) & 'px; } } ' &
+            '@keyframes qlikFillWipe { from { width: 1px; } to { width: ' & _bar_percent & 'px; } } ' &
             // Animation Profile 2: Ambient soft glow breathing cycle for 100% completed rows
-            '@keyframes qlikGlowPulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } } ' &
+            '@keyframes qlikGlowPulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } } ' &
             
-            // Map the rules directly onto our unique target component layout classes
-            '.bar-fill-track { animation: qlikFillWipe 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; } ' &
-            '.bar-complete-pulse { animation: qlikGlowPulse 2.5s ease-in-out infinite; } ' &
+            // Separating the classes entirely stops Chrome from dropping width states
+            '.bar-fill-wipe { animation: qlikFillWipe 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; } ' &
+            '.bar-complete-glow { animation: qlikGlowPulse 2.5s ease-in-out infinite; } ' &
           '</style>' &
           
-          // B. Background Track Layer
-          '<rect x="0.5" y="2.5" width="99" height="15" rx="7.5" fill=' & Chr(39) & '$(l_Track)' & Chr(39) & ' stroke="%23e2e8f0" stroke-width="0.5" />' &
+          // 2. Background Track Layer
+          '<rect x="0" y="2.5" width="102" height="15" rx="7.5" fill="' & _bar_track_color & '" stroke="%23e2e8f0" stroke-width="0.5" />' &
           
-          // C. Dynamic Fill Layer (Assigned to the custom CSS classes built above)
-          '<rect class="' & If($(vPercentField) >= 100, 'bar-fill-track bar-complete-pulse', 'bar-fill-track') & '" ' & 
-            'x="0.5" y="2.5" height="15" rx="7.5" fill=' & Chr(39) & 
-            If($(vPercentField) >= 100, '%2322c55e',       
-            If($(vPercentField) <= 30,  '%23ef4444',       
-            If(Len(Trim('$(vFillColorBlock)')) > 0, '$(vFillColorBlock)', '%2306b6d4'))) 
-          & Chr(39) & ' />' &
+          // 3. Dynamic Progress Fill Layer Engine
+          // If 100%, we bypass the width wipe animation entirely. 
+          // We draw a solid 102px wide green bar and apply only the glow pulse animation class.
+          If(_bar_percent >= 100,
+            '<rect class="bar-complete-glow" x="0" y="2.5" width="102" height="15" rx="7.5" fill="%2322c55e" />',
+            '<rect class="bar-fill-wipe" x="0" y="2.5" height="15" rx="7.5" fill="' & _bar_fill_color & '" />'
+          ) &
           
-          // D. Centered Text Layer Readout with Smart Contrast Color Flipping
-          '<text x="50" y="10.5" dominant-baseline="central" text-anchor="middle" ' &
+          // 4. Centered Text Layer Readout with Smart Contrast Color Flipping
+          '<text x="51" y="10.5" dominant-baseline="central" text-anchor="middle" ' &
           'font-family="$(l_TextFont)" font-weight="$(l_TextWeight)" font-size="9px" fill=' & Chr(39) & 
-            If($(vPercentField) >= 45, '%23ffffff', '%23475569') 
-          & Chr(39) & '>' & If($(vPercentField) > 0, Round($(vPercentField)) & '%', '') & '</text>' &
+            If(_bar_percent >= 45, '%23ffffff', '%23475569') 
+          & Chr(39) & '>' & If(_bar_percent >= 0, _bar_percent & '%', '') & '</text>' &
           
         '</svg>' as $(vOutputField)
-    RESIDENT $(vSourceTable);
+    RESIDENT _SVG_Bar_Staging;
 
-    LET l_Track = Null(); LET l_TextFont = Null(); LET l_TextWeight = Null();
+    DROP TABLE _SVG_Bar_Staging;
+    LET l_TextFont = Null(); LET l_TextWeight = Null();
 END SUB;
