@@ -10,25 +10,17 @@
 
 ---
 
-### 🎬 Animated System Profiles & Core Color Themes
+### 🎬 Live Animation Profiles & Core Color Themes
 
-Our framework maps text triggers (like `ACTIVE`, `PENDING`, `BLOCKED`, or `CRITICAL`) directly to hardware-accelerated CSS animation effects. Below is the complete visual design reference:
+Below are the live-rendering animation profiles handled natively by our framework's backend script loops:
 
-*   **🌊 Green Shimmer (`ACTIVE` Overrides)**:
-    *   *Visual Effect*: A full-height, continuous color wave loading sweep (`1.8s` loop duration) running smoothly from left to right behind the label text.
-    *   *Theme Colors*: Soft Green background (`%23dcfce7`) paired with a vivid Green filling wave (`%2322c55e`).
-*   **🚨 Red Pulsing Dot Alert (`BLOCKED` / `CRITICAL` Overrides)**:
-    *   *Visual Effect*: Appends an ambient, breathing "radar-glow" circle vector on the left side of the text that loops its opacity gracefully from `0.4` to `1.0` every 2 seconds.
-    *   *Theme Colors*: Soft Red background (`%23fee2e2`), Dark Red text (`%23991b1b`), and an energetic Red warning pulse element (`%23ef4444`).
-*   **⚡ Amber Shimmer + Alert Dot (`PENDING` Overrides)**:
-    *   *Visual Effect*: The ultimate combined alarm badge. It simultaneously triggers a full background width-wipe horizontal loading track *and* pins a slow-pulsing warning circle next to the label.
-    *   *Theme Colors*: Soft Amber background (`%23fef3c7`), Dark Amber text (`%2392400e`), and an Amber warning stroke (`%23f59e0b`).
-*   **🌊 Blue Shimmer (`ACTIVE` Default)**:
-    *   *Visual Effect*: A clean background shimmer sweep that moves fluidly over a 1.8-second cycle, perfect for showing an active background workflow process without text clipping.
-    *   *Theme Colors*: Soft Blue background (`%23e0f2fe`) combined with a Dark Blue shifting wave layer (`%230284c7`).
-*   **💤 Slate Gray Static (Standard Default Fallback)**:
-    *   *Visual Effect*: Completely static. Disables all animations and background loaders for completed, historical, or idle elements to keep your table view clean and readable.
-    *   *Theme Colors*: Neutral Gray background (`%23f1f5f9`), Slate Gray text (`%23334155`), and an elegant bounding frame outline (`%23cbd5e1`).
+| Status Key | Live Component Showcase | Profile Description |
+| :--- | :--- | :--- |
+| **ACTIVE (Green)** | ![Green Shimmer](https://githubusercontent.com) | **Green Shimmer**: Continuous `1.8s` loading sweep running horizontally behind the text label. |
+| **BLOCKED / CRITICAL** | ![Red Pulse](https://githubusercontent.com) | **Red Pulsing Dot**: Infuses a flashing radar alert ring on the left with a slow opacity breathing cycle. |
+| **PENDING** | ![Amber Combo](https://githubusercontent.com) | **Amber Combo**: Dual-action animation combining a full background loader bar with a pulsing alert dot. |
+| **ACTIVE (Blue)** | ![Blue Shimmer](https://githubusercontent.com) | **Blue Shimmer**: Elegant wave shimmer, perfect for active background syncs or data pipeline states. |
+| **DEFAULT (Static)** | ![Slate Static](https://githubusercontent.com) | **Slate Static**: Disables all movement to keep completed or historical elements clean and legible. |
 
 ---
 
