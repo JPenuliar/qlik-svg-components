@@ -1,0 +1,6 @@
+{
+  "name": "Qlik SVG Components Suite",
+  "description": "Interactive designer, Qlik Sense table simulator, and load script generator for native animated SVG UI badges, status pills, and progressive tracking gauges.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
