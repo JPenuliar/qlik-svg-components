@@ -1,87 +1,62 @@
 # 🚀 Elevate Your Qlik Tables with Native SVG UI Components!
 
-Stop choosing between boring text grids and clunky, slow chart extensions. 
-
-**`qlik-svg-components`** injects lightweight, stunning, animated vector graphics **directly into your native Qlik Sense tables** via the backend load script. No extensions. No security risks. Zero client-side slowdowns.
+**`qlik-svg-components`** injects lightweight, stunning, animated vector graphics directly into native Qlik Sense tables via the backend load script. No extensions. No security risks. Zero client-side slowdowns.
 
 ---
 
-### 🔥 Killer Visual Features
-
-Bring your data grids to life with graphics processed directly on the client's GPU for maximum speed:
-
-*   **🌊 Shimmering Backgrounds**: Active items (`ACTIVE` / `PENDING`) automatically cycle a smooth, elegant loading shimmer completely behind your text.
-*   **🚨 Pulsing Radar Alerts**: Critical bottlenecks (`CRITICAL` / `BLOCKED`) embed an ambient pulsing dot that catches the user's eye instantly.
-*   **📊 Fluid Progress Bars**: KPI gauges slide seamlessly into place with premium Ease-In-Out motion curves when dashboard filters change.
-*   **📐 Auto-Sizing Badges**: The engine calculates string lengths in real-time and stretches capsules symmetrically so your text never overflows or clips.
-*   **🌗 Contrast Text Flipping**: Text labels inside progress tracks dynamically flip from slate-gray to white once the bar passes 45% width, ensuring perfect legibility.
+### 👨‍💻 Author & Maintainer
+*   **Project Creator**: [JPenuliar](https://github.com)
+*   **Repository Home**: [://github.com](https://github.com/qlik-svg-components)
 
 ---
 
-### 📦 Powerfully Reusable & Highly Adaptive
+### 🎬 Animated System Profiles & Core Color Themes
 
-Run the custom subroutines in **3 flexible deployment modes** to fit any dashboard UI layout:
+Our framework maps text triggers (like `ACTIVE`, `PENDING`, `BLOCKED`, or `CRITICAL`) directly to hardware-accelerated CSS animation effects. Below is the complete visual design reference:
 
-1.  **`ROW`**: Gives every single record row its own standalone, animated status badge.
-2.  **`GROUPED`**: Clusters child values horizontally side-by-side inside a single cell (e.g., displaying `[ Completed ] [ In Progress ] [ Blocked ]` inside one project row).
-3.  **`SINGLE`**: Compresses an entire dataset array into a beautiful horizontal status legend ribbon to lock at the top of your sheets.
+*   **🌊 Green Shimmer (`ACTIVE` Overrides)**:
+    *   *Visual Effect*: A full-height, continuous color wave loading sweep (`1.8s` loop duration) running smoothly from left to right behind the label text.
+    *   *Theme Colors*: Soft Green background (`%23dcfce7`) paired with a vivid Green filling wave (`%2322c55e`).
+*   **🚨 Red Pulsing Dot Alert (`BLOCKED` / `CRITICAL` Overrides)**:
+    *   *Visual Effect*: Appends an ambient, breathing "radar-glow" circle vector on the left side of the text that loops its opacity gracefully from `0.4` to `1.0` every 2 seconds.
+    *   *Theme Colors*: Soft Red background (`%23fee2e2`), Dark Red text (`%23991b1b`), and an energetic Red warning pulse element (`%23ef4444`).
+*   **⚡ Amber Shimmer + Alert Dot (`PENDING` Overrides)**:
+    *   *Visual Effect*: The ultimate combined alarm badge. It simultaneously triggers a full background width-wipe horizontal loading track *and* pins a slow-pulsing warning circle next to the label.
+    *   *Theme Colors*: Soft Amber background (`%23fef3c7`), Dark Amber text (`%2392400e`), and an Amber warning stroke (`%23f59e0b`).
+*   **🌊 Blue Shimmer (`ACTIVE` Default)**:
+    *   *Visual Effect*: A clean background shimmer sweep that moves fluidly over a 1.8-second cycle, perfect for showing an active background workflow process without text clipping.
+    *   *Theme Colors*: Soft Blue background (`%23e0f2fe`) combined with a Dark Blue shifting wave layer (`%230284c7`).
+*   **💤 Slate Gray Static (Standard Default Fallback)**:
+    *   *Visual Effect*: Completely static. Disables all animations and background loaders for completed, historical, or idle elements to keep your table view clean and readable.
+    *   *Theme Colors*: Neutral Gray background (`%23f1f5f9`), Slate Gray text (`%23334155`), and an elegant bounding frame outline (`%23cbd5e1`).
 
 ---
 
-## 💾 Clean Copy-Paste Implementation
+## 💾 Subroutine Parameters & Integration
 
-### 1. Text Badges & Pills (`CreateSVGPills`)
-Isolates infrastructure deployment environments row-by-row, triggering background animations and flashing alert dots on critical steps.
-
+### 1. The Pill & Status Badge Module (`CreateSVGPills`)
 ```qlik
-// 1. Initialize the master core engine variables
-\$(Include=../src/SVG_Main_Core.qvs);
-
-// Force borders solid for crisp, distinct outlines
-LET vStrokeDashArray = ''; 
-
-DevOpsStaging:
-LOAD * INLINE [
-    EnvID, Environment,     DeployStatus, BgHex,       TextHex,     StrokeHex
-    501,   Production,      ACTIVE,       '%23e0f2fe', '%230369a1', '%230284c7' // Blue Shimmer
-    502,   Staging Sandbox, PENDING,      '%23fef3c7', '%2392400e', '%23f59e0b' // Amber Shimmer + Dot
-    503,   UAT Testing,     CRITICAL,     '%23fee2e2', '%23991b1b', '%23ef4444' // Red Pulsing Radar Dot
-    504,   Local Dev Box,   Syncing,      '%23f1f5f9', '%23334155', '%23cbd5e1' // Static Baseline
-];
-
-CALL CreateSVGPills('DevOpsStaging', '', 'DeployStatus', 'EnvID', 'EnvBadgeField', 'BgHex', 'TextHex', 'StrokeHex', 'ROW');
-DROP TABLE DevOpsStaging;
+CALL CreateSVGPills(SourceTable, GroupField, TextField, IdField, OutputField, BgColorField, TextColorField, StrokeColorField, OutputType);
 ```
+*   **`vOutputType` Deploy Profiles**: 
+    *   `'ROW'`: Keeps records independent, outputting a standalone single badge line-for-line.
+    *   `'GROUPED'`: Automatically stacks matching elements side-by-side inside a single cell mapped to your category dimension, dropping row-level keys to prevent row splitting anomalies.
+    *   `'SINGLE'`: Squeezes your entire dataset horizontally into a single-row status legend ribbon widget.
 
-### 2. Animated Progress Bars (`CreateSVGProgressBars`)
-Maps completion rates linearly over a clean tracking track, complete with smooth entry transitions.
-
+### 2. Linear Progressive Tracking Gauges (`CreateSVGProgressBars`)
 ```qlik
-\$(Include=../src/SVG_Main_Core.qvs);
-
-ProjectMilestones:
-LOAD * INLINE [
-    ProjectID, ProjectName,       CompletionPercentage
-    1001,      Cloud Migration,   88.5
-    1002,      Database Tuning,   14.0
-    1003,      Security Audit,    100.0
-];
-
-CALL CreateSVGProgressBars('ProjectMilestones', 'ProjectID', 'CompletionPercentage', 'VisualProgressTrack', '%2306b6d4', '%23f1f5f9');
-DROP TABLE ProjectMilestones;
+CALL CreateSVGProgressBars(SourceTable, IdField, PercentField, OutputField, FillColorBlock, TrackColorBlock);
 ```
+*   Features a custom, mathematically un-collapsible SVG animation matrix. Active rows slide smoothly into their target position via an Ease-In-Out physics curve, while `100%` achieved milestones automatically switch to an ambient green breathing cycle.
 
-> ⚠️ **Important Color Note**: All hex color codes passed into these scripts **must use `%23` instead of `#`** (for example: `'%2306b6d4'`). Using a standard `#` breaks the HTML string structure and forces images to appear blank.
+> ⚠️ **Critical URL Hex Note**: All hex color codes passed into these modules **must be encoded using `%23` instead of a hash `#`** (for example: `'%2306b6d4'`). Passing a raw `#` breaks the HTML string structure, causing images to appear blank.
 
 ---
 
-## 🎨 Ready for Qlik Tables in 4 Steps
+## 🎨 Presentation Table Layout Checklist
 
-Turn raw text strings into visual UI elements inside your sheet properties panel instantly:
-
-1.  Click your output field column (e.g., `VisualProgressTrack` or `EnvBadgeField`) in the data pane.
-2.  Set column **Representation** to **IMAGE**.
-3.  Set **Image Sizing** to **STRETCH** *(Our layout code locks the badges into proportion automatically to prevent distortion, while letting the progress bars stretch linearly)*.
-4.  Go to the right-hand **Appearance Panel** -> **Presentation** -> **Row Height (in lines)** and set the spacing value to **3** or **4** lines for premium padding.
-
-**Enjoy stunning, animated, responsive tables under peak corporate data loads!**
+To make sure your inline text strings convert to visual components instantly inside your sheet panel properties:
+1.  Select your output field column (`OutputField`) inside the table chart's data pane.
+2.  Switch column **Representation** from *Text* to **IMAGE**.
+3.  Switch **Image Sizing** from *Keep Aspect Ratio* to **STRETCH**. *(Our layout code blocks Qlik from warping your badges, while allowing progress bars to expand linearly across the grid width).*
+4.  Go to **Appearance Panel** -> **Presentation** -> **Row Height (in lines)** and increase the padding height parameter to **3** or **4** lines to give your animated layouts premium breathing room.
