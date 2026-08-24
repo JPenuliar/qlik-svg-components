@@ -1,0 +1,27 @@
+// ============================================================================
+// REPOSITORY IMPLEMENTATION EXAMPLE: SUPPLY CHAIN HUB LOGISTICS STRIPS
+// File: examples/sample_supply_logistics.qvs
+// Layout Profile: GROUPED (Stitches child badges horizontally inside group keys)
+// ============================================================================
+
+// 1. Load the core variable properties panel definitions
+$(Include=../src/SVG_Main_Core.qvs);
+
+// 2. Pull in raw logistical transit milestone records
+LogisticsStaging:
+NoConcatenate
+LOAD * INLINE [
+    ShipID, HubRegion,       CargoStatus, BgHex,       TextHex,     StrokeHex
+    901,    North America,   ACTIVE,      '%23dcfce7', '%23166534', '%2322c55e' // Green Shimmer
+    902,    North America,   BLOCKED,     '%23fee2e2', '%23991b1b', '%23ef4444' // Red Pulsing Dot Alert
+    903,    EuroHub Central, PENDING,     '%23fef3c7', '%2392400e', '%23f59e0b' // Amber Shimmer + Alert Dot
+    904,    EuroHub Central, ACTIVE,      '%23e0f2fe', '%230369a1', '%230284c7' // Blue Shimmer
+    905,    APAC Logistics,  In Transit,  '%23f1f5f9', '%23334155', '%23cbd5e1' // Slate Gray Static
+];
+
+// 3. Compile grouped status blocks clustered horizontally by regional hub dimension cells
+CALL CreateSVGPills('LogisticsStaging', 'HubRegion', 'CargoStatus', 'ShipID', 'HubStatusStrips', 'BgHex', 'TextHex', 'StrokeHex', 'GROUPED');
+
+DROP TABLE LogisticsStaging;
+
+// Output: 'LogisticsStaging_SVG_Output' table indexed uniquely by [HubRegion]
