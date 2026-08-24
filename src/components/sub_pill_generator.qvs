@@ -1,6 +1,7 @@
 // ============================================================================
-// COMPONENT MODULE: CreateSVGPills
-// Handles 'GROUPED', 'SINGLE', and 'ROW' horizontal capsule canvas compilation.
+// COMPONENT MODULE: CreateSVGPills (100% Full Background Crawler Edition)
+// File: src/components/sub_pill_generator.qvs
+// Repository: ://github.com
 // ============================================================================
 SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField, vBgColorField, vTextColorField, vStrokeColorField, vOutputType)
 
@@ -8,16 +9,17 @@ SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField
     
     IF '$(l_Mode)' = 'GROUPED' THEN
         LET l_GroupKey = '$(vGroupField)';
-        LET l_OrderBy  = '$(vGroupField), $(vIdField)';
+        LET l_OrderBy  = '_svg_group, _svg_id';
     ELSEIF '$(l_Mode)' = 'ROW' THEN
         LET l_GroupKey = '$(vIdField)'; 
-        LET l_OrderBy  = '$(vIdField)';
+        LET l_OrderBy  = '_svg_id';
     ELSE
         LET l_GroupKey = Chr(39) & 'GlobalCanvas' & Chr(39); 
-        LET l_OrderBy  = '$(vIdField)';
+        LET l_OrderBy  = '_svg_id';
     ENDIF;
 
-    _SVG_Staging_Ordered:
+    // Phase A: Handle staging parameters cleanly and isolate references
+    _SVG_Staging_Pre:
     NoConcatenate
     LOAD 
         $(vIdField) as _svg_id,
@@ -26,25 +28,72 @@ SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField
         $(vBgColorField) as _svg_bg,
         $(vTextColorField) as _svg_text_color,
         If(Len(Trim('$(vStrokeColorField)')) > 0, $(vStrokeColorField), $(vTextColorField)) as _svg_stroke,
-        (Len(Trim($(vTextField))) * $(vCharMultiplier)) + $(vPillHeight) + 4 as _svg_width
-    RESIDENT $(vSourceTable)
-    ORDER BY $(l_OrderBy);
+        If(Match(Upper($(vTextField)), 'BLOCKED', 'CRITICAL', 'ALERT', 'PENDING', 'ACTIVE'), 1, 0) as _svg_is_status
+    RESIDENT $(vSourceTable);
 
+    // Phase B: Execute ordered sequential offset tracking using clean variables
     _SVG_Staging_With_Offsets:
     NoConcatenate
     LOAD 
         _svg_id,
         _svg_group,
+        _svg_text,
+        _svg_bg,
+        _svg_text_color,
+        _svg_stroke,
+        _svg_is_status,
+        (Len(Trim(_svg_text)) * $(vCharMultiplier)) + $(vPillHeight) + 8 + If(_svg_is_status = 1, 14, 0) as _svg_width
+    RESIDENT _SVG_Staging_Pre
+    ORDER BY $(l_OrderBy);
+
+    DROP TABLE _SVG_Staging_Pre;
+
+    // Phase C: Compile inner structural shape codes and trace running row coordinates
+    _SVG_Staging_Compiled:
+    NoConcatenate
+    LOAD
+        _svg_id,
+        _svg_group,
         _svg_width,
-        '<rect x="2" y="2" width="' & (_svg_width - 4) & '" height="$(vPillHeight)" rx="$(vPillRadius)" fill="' & _svg_bg & '" stroke="' & _svg_stroke & '" stroke-width="$(vStrokeWidth)" stroke-dasharray="' & '$(vStrokeDashArray)' & '"/>' &
-        '<text x="' & (_svg_width / 2) & '" y="$(vTextCenterY)" dominant-baseline="central" text-anchor="middle" ' &
+        
+        // 1. INJECT EMBEDDED STYLE SHEETS (Bypasses Qlik tag sanitizer completely)
+        '<style>' &
+          '@keyframes pillFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } } ' &
+          '@keyframes indicatorGlow { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } } ' &
+          // Fixed animation profile: The width-wipe now sweeps cleanly across the full capsule width
+          '@keyframes qlikPillWipe { from { width: 0px; } to { width: ' & (_svg_width - 4) & 'px; } } ' &
+          
+          '.pill-g-wrap { animation: pillFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; } ' &
+          '.pill-pulse-dot { animation: indicatorGlow 2s ease-in-out infinite; } ' &
+          '.pill-anim-loader { animation: qlikPillWipe 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; } ' &
+        '</style>' &
+        
+        // 2. Base Capsule Shape Layer (Background track)
+        '<rect x="2" y="2" width="' & (_svg_width - 4) & '" height="$(vPillHeight)" rx="$(vPillRadius)" fill="' & _svg_bg & '" stroke="' & _svg_stroke & '" stroke-width="$(vStrokeWidth)" stroke-dasharray="$(vStrokeDashArray)"/>' &
+        
+        // 3. FIXED FULL-HEIGHT CRAWLER LAYER:
+        // Positioned perfectly at x="2" y="2" with height="$(vPillHeight)" and rx="$(vPillRadius)" to match the capsule size.
+        // It renders BEFORE the text layer, serving as a dynamic, looping animated background fill element.
+        If(Match(Upper(_svg_text), 'PENDING', 'ACTIVE'),
+            '<rect class="pill-anim-loader" x="2" y="2" height="$(vPillHeight)" rx="$(vPillRadius)" fill="' & _svg_stroke & '" opacity="0.12" />'
+        ) &
+        
+        // 4. Dynamic Alert Indicator Dot Layer
+        If(_svg_is_status = 1,
+            '<circle class="pill-pulse-dot" cx="16" cy="' & ($(vPillHeight) / 2 + 2) & '" r="4" fill="' & _svg_stroke & '" />'
+        ) &
+        
+        // 5. Text Label Layer (Placed last so it floats cleanly on top of the background crawler)
+        '<text x="' & If(_svg_is_status = 1, (_svg_width / 2) + 6, _svg_width / 2) & '" ' & 
+        'y="$(vTextCenterY)" dominant-baseline="central" text-anchor="middle" ' &
         'font-family="' & '$(vFontFamily)' & '" font-weight="' & '$(vFontWeight)' & '" font-size="' & '$(vFontSize)' & '" fill="' & _svg_text_color & '">' & _svg_text & '</text>' as _svg_inner,
         
         If('$(l_Mode)' = 'ROW', 0, If(_svg_group = Peek('_svg_group'), Peek('_svg_offset') + Peek('_svg_width') + $(vPillGap), 0)) as _svg_offset
-    RESIDENT _SVG_Staging_Ordered;
+    RESIDENT _SVG_Staging_With_Offsets;
 
-    DROP TABLE _SVG_Staging_Ordered;
+    DROP TABLE _SVG_Staging_With_Offsets;
 
+    // Phase D: Compress structural elements into master canvas tags
     IF '$(l_Mode)' = 'GROUPED' THEN
         $(vSourceTable)_SVG_Output:
         NoConcatenate
@@ -52,9 +101,9 @@ SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField
             _svg_group as $(vGroupField),
             'data:image/svg+xml;utf8,' & 
             '<svg width="100%" height="100%" viewBox="0 0 ' & (Sum(_svg_width) + (Count(_svg_id) * $(vPillGap))) & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" ' & '$(vXmlns)' & '>' & 
-            Concat('<g transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & 
+            Concat('<g class="pill-g-wrap" transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & 
             '</svg>' as $(vOutputField)
-        RESIDENT _SVG_Staging_With_Offsets
+        RESIDENT _SVG_Staging_Compiled
         GROUP BY _svg_group;
     ELSEIF '$(l_Mode)' = 'ROW' THEN
         $(vSourceTable)_SVG_Output:
@@ -63,21 +112,21 @@ SUB CreateSVGPills(vSourceTable, vGroupField, vTextField, vIdField, vOutputField
             _svg_id as $(vIdField),
             'data:image/svg+xml;utf8,' & 
             '<svg width="100%" height="100%" viewBox="0 0 ' & _svg_width & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" ' & '$(vXmlns)' & '>' & 
-            _svg_inner & 
+            '<g class="pill-g-wrap">' & _svg_inner & '</g>' & 
             '</svg>' as $(vOutputField)
-        RESIDENT _SVG_Staging_With_Offsets;
+        RESIDENT _SVG_Staging_Compiled;
     ELSE
         $(vSourceTable)_SVG_Output:
         NoConcatenate
         LOAD
             'data:image/svg+xml;utf8,' & 
             '<svg width="100%" height="100%" viewBox="0 0 ' & (Sum(_svg_width) + (Count(_svg_id) * $(vPillGap))) & ' $(vCanvasHeight)" preserveAspectRatio="xMinYMid meet" ' & '$(vXmlns)' & '>' & 
-            Concat('<g transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & 
+            Concat('<g class="pill-g-wrap" transform="translate(' & _svg_offset & ', 0)">' & _svg_inner & '</g>', '') & 
             '</svg>' as $(vOutputField)
-        RESIDENT _SVG_Staging_With_Offsets
+        RESIDENT _SVG_Staging_Compiled
         GROUP BY _svg_group;
     ENDIF;
 
-    DROP TABLE _SVG_Staging_With_Offsets;
+    DROP TABLE _SVG_Staging_Compiled;
     LET l_Mode = Null(); LET l_GroupKey = Null(); LET l_OrderBy = Null();
 END SUB;
