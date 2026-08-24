@@ -1,0 +1,12 @@
+<svg width="112" height="28" viewBox="0 0 112 28" xmlns="http://w3.org">
+  <style>
+    @keyframes wipe { from { width: 0px; } to { width: 108px; } }
+    @keyframes glow { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+    .shim { animation: wipe 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+    .dot { animation: glow 2s ease-in-out infinite; }
+  </style>
+  <rect x="2" y="2" width="108" height="24" rx="12" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" />
+  <rect class="shim" x="2" y="2" height="24" rx="12" fill="#f59e0b" opacity="0.12" />
+  <circle class="dot" cx="16" cy="14" r="4" fill="#f59e0b" />
+  <text x="60" y="14" dominant-baseline="central" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="11px" fill="#92400e">PENDING</text>
+</svg>
