@@ -13,6 +13,7 @@ By manipulating XML text blocks during the load script execution phase, this lib
 *   **Linear KPI Progress Tracks**: Draws highly responsive, proportional progress bars inside cells using clean tracking frameworks that adjust dynamically when columns are resized.
 *   **Adaptive String Tracking**: Evaluates word lengths in real-time via `Len(Trim())` text formulas to stretch or contract capsule containers symmetrically so your text never overflows its boundaries.
 *   **Fixed Edge Alignment Mapping**: Forces elements to stay tightly left-anchored (`preserveAspectRatio="xMinYMid meet"`) or dynamically fill linear tracks (`preserveAspectRatio="none"`) across all modern browser engines.
+*   **Bypass-Safe CSS Animations**: Uses embedded inline CSS `@keyframes` selectors rather than standard SMIL `<animate>` nodes to protect responsive motion events from Qlik's internal visual sanitizer script routines.
 
 ---
 
@@ -58,9 +59,9 @@ LET vStrokeWidth     = 1.5;                                // Border trace line 
 LET vStrokeDashArray = '4, 3';                            // Set to '' for solid line frames
 
 // Mathematical Spatial Coordinate Mapping Variables
-LET vPillRadius     = \$(vPillHeight) / 2;                 
-LET vCanvasHeight   = \$(vPillHeight) + 4;                 
-LET vTextCenterY    = (\$(vPillHeight) / 2) + 2;           
+LET vPillRadius     = $(vPillHeight) / 2;                 
+LET vCanvasHeight   = $(vPillHeight) + 4;                 
+LET vTextCenterY    = ($(vPillHeight) / 2) + 2;           
 ```
 
 ---
@@ -88,7 +89,8 @@ CALL CreateSVGProgressBars(SourceTable, IdField, PercentField, OutputField, Fill
 ```
 *   **`SourceTable` / `IdField` / `OutputField`**: Standard module routing pointers.
 *   **`PercentField`**: Existing database numeric percentage column (0 to 100).
-*   **`FillColorBlock` / `TrackColorBlock`**: Raw color blocks (e.g., `'%2322c55e'` for active fill progress and `'%23e2e8f0'` for the back empty track structure).
+*   **`FillColorBlock` / `TrackColorBlock`**: Raw color blocks (e.g., `'%2322c55e'` for active progress and `'%23e2e8f0'` for the background track structure).
+*   **Integrated Animations**: Features an inline CSS animation engine. In-progress bars slide smoothly into position using a custom `cubic-bezier` Ease-In-Out physics track, while 100% completed rows transition to a soft, ambient glow pulse cycle automatically.
 
 ---
 
@@ -105,7 +107,7 @@ To activate vector graphic rendering within Qlik Sense native sheet dashboard ta
    
    👉 *NOTE ON STRETCHING: For Progress Bars, this allows the linear gauge to fill the column space dynamically. For Pill Badges, our embedded `preserveAspectRatio` code overrides Qlik's stretch engine, protecting capsule proportions from distorting while pinning them securely to the left grid border lines.*
 
-4. ↕️ [APPEARANCE PANE] -> Presentation -> Row Height (in lines) -> Set to custom height **3** or **4**.
+4. ↕️ [APPEARANCE PANE] -> Presentation -> Row Height (in lines) -> Set to custom value **3** or **4**.
    
    👉 *This provides adequate top and bottom viewport buffer workspace so borders render crisply without clipping.*
 ```
@@ -117,7 +119,7 @@ To activate vector graphic rendering within Qlik Sense native sheet dashboard ta
 ### Deploying the Complete Library to an Application Script
 ```qlik
 // 1. Core library initialization (Pulls component subs automatically)
-\$(Include=[lib://MyServerFolder/src/SVG_Main_Core.qvs]);
+$(Include=[lib://MyServerFolder/src/SVG_Main_Core.qvs]);
 
 // 2. Setup Staging Tables
 SprintMetrics:
@@ -147,7 +149,7 @@ DROP TABLES SprintMetrics, ProjectTeams;
 
 ---
 
-## ⚠️ Known Technical Constraints
+## ⚠️ Known Technical Constraints & Quirks
 
 *   **URL Hex Encoding Required**: Browsers interpret raw `#` tags inside data URIs as HTML fragment identifiers, which breaks color rendering. All hex values passed through the variables or database layers **must match the `%23` format**.
 *   **Variable Extraction Guard**: When referencing script styling variables, use the split quote syntax method embedded within our code blocks (e.g. `font-size="' & '$(vFontSize)' & '"`) to bypass premature Qlik expression evaluation loops.
